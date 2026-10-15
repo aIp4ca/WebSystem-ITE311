@@ -9,13 +9,11 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    // Displays the registration form
     public function register()
     {
         return view('auth.register');
     }
 
-    // Processes registration form submission
     public function storeRegister(Request $request)
     {
         $request->validate([
@@ -28,19 +26,18 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'user',
+            'role' => 'student',
         ]);
 
         return redirect('/login')->with('success', 'Registration successful. You may now log in.');
     }
 
-    // Displays the login form
     public function login()
     {
         return view('auth.login');
     }
 
-    // Processes login form submission
+    // STEP 2
     public function authenticate(Request $request)
     {
         $credentials = $request->validate([
@@ -55,16 +52,24 @@ class AuthController extends Controller
 
         return back()->withErrors([
             'email' => 'Invalid email or password.',
-        ])->onlyInput('email');
+        ]);
     }
 
-    // Protected page: only logged-in users can see it
+    // STEP 3
     public function dashboard()
     {
-        return view('auth.dashboard');
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect('/login');
+        }
+
+        return view('auth.dashboard', [
+            'user' => $user,
+            'role' => $user->role,
+        ]);
     }
 
-    // Destroys the user's session and redirects
     public function logout(Request $request)
     {
         Auth::logout();
